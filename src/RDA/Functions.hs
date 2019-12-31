@@ -35,10 +35,10 @@ partial i f x = f x `xor` f (x `xor` e_i)
 -- NOTE: this is represented as a length @n@ tuple of functions, but we haven't
 -- encoded this in the type!
 -- TODO: better length-encoded list types?
-rd1 :: (KnownNat n, KnownNat (n+1), Bits t)
-  => Proxy n -> (BitVec t n -> BitVec t 1) -> [BitVec t (n + 1) -> BitVec t 1]
-rd1 n f = component f <$> [0..m-1]
-  where m = fromIntegral (natVal n)
+rd1 :: forall n t . (KnownNat n, KnownNat (n+1), Bits t)
+  => (BitVec t n -> BitVec t 1) -> [BitVec t (n + 1) -> BitVec t 1]
+rd1 f = component f <$> [0..m-1]
+  where m = fromIntegral (natVal (Proxy :: Proxy n))
 
 component :: (KnownNat n, KnownNat (n+1), Bits t)
   => (BitVec t n -> BitVec t 1) -> Int -> BitVec t (n + 1) -> BitVec t 1

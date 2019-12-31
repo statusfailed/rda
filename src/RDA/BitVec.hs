@@ -25,8 +25,8 @@ instance (KnownNat n, Bits t) => FiniteBits (BitVec t n) where
 -- | @bitVec n x@ makes a bitvector from a size @n@ and an underlying value @x@,
 -- which is taken modulo @2^n@.
 --
--- NOTE: using cheeky recursion, we don't have to supply a proxy here, so the
--- value can be polymorphic in length.
+-- NOTE: we don't have to require a proxy here, so the value can be polymorphic
+-- in length.
 --
 -- :t bitVec 3 :: BitVec Integer 5
 -- BitVec Integer 5
@@ -39,7 +39,7 @@ bitVec x = r
 -- | Get the underlying representation of a 'BitVec'
 toBits :: (KnownNat n, Bits t) => BitVec t n -> t
 toBits b@(BitVec x) = mask n .&. x
-  where n = fromIntegral (natVal b) -- using bitvec as its own proxy.
+  where n = fromIntegral (natVal b)
 
 -- | Arbitrarily resize a bitvector, discarding most significant bits if m < n
 resize :: (KnownNat n, Bits t) => BitVec t n -> BitVec t m
@@ -61,10 +61,10 @@ append :: (Bits t, KnownNat n, KnownNat m, m <= n + m, n <= n + m, KnownNat (n +
 append x y = expand x `xor` (expand y `shiftL` n) -- shiftL: we write numbers backwards!
   where n = fromIntegral $ natVal x
 
-split :: (KnownNat n, KnownNat m, KnownNat (n + m), Bits t)
+split :: forall n m t. (KnownNat n, KnownNat m, KnownNat (n + m), Bits t)
   => BitVec t (n + m) -> (BitVec t n, BitVec t m)
 split xy = (x, y)
   where
     x = resize xy
     y = resize (xy `shiftR` m)
-    m = fromIntegral (natVal y)
+    m = fromIntegral (natVal (Proxy :: Proxy m))
