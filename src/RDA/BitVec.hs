@@ -4,7 +4,7 @@
 -- | Type-safe bitvectors
 -- Thanks: https://blog.jle.im/entry/fixed-length-vector-types-in-haskell.html
 module RDA.BitVec
-  ( BitVec(..)
+  ( BitVec(..) -- ^ TODO: consider hiding constructors
   , bitVec
   , toBits
   ) where
@@ -18,6 +18,9 @@ import RDA.Bitwise (mask)
 -- | A @'BitVec' n a@ is an @n@-bit vector stored as the type a.
 newtype BitVec t (n :: Nat) = BitVec { unBitVec :: t }
   deriving(Eq, Ord, Read, Show, Enum, Num, Bits)
+
+instance (KnownNat n, Bits t) => FiniteBits (BitVec t n) where
+  finiteBitSize b = fromIntegral (natVal b)
 
 -- | @bitVec n x@ makes a bitvector from a size @n@ and an underlying value @x@,
 -- which is taken modulo @2^n@.
@@ -40,5 +43,6 @@ toBits b@(BitVec x) = mask n .&. x
 
 -- | Change the underlying representation of a 'BitVec'
 -- /O(n)/.
-convert :: (Bits a, Bits b) => BitVec a n -> BitVec b n
-convert = undefined -- bitVec . f . toBits
+convert :: (KnownNat n, Bits a, Bits b) => BitVec a n -> BitVec b n
+convert a =
+  foldl (\b i -> if testBit a i then setBit b i else b) zeroBits [0..finiteBitSize a]
