@@ -1,4 +1,4 @@
-module RDA.Functions
+module RDA.Derivative
   ( eval
   , partial
   , component
@@ -37,9 +37,11 @@ partial i f x = f x `xor` f (x `xor` e_i)
 -- TODO: better length-encoded list types?
 rd1 :: forall n t . (KnownNat n, KnownNat (n+1), Bits t)
   => (BitVec t n -> BitVec t 1) -> [BitVec t (n + 1) -> BitVec t 1]
-rd1 f = component f <$> [0..m-1]
-  where m = fromIntegral (natVal (Proxy :: Proxy n))
+rd1 f = component f <$> [0 .. n - 1]
+  where n = fromIntegral (natVal (Proxy :: Proxy n))
 
+-- | @component f i xy@ computes the @i@th component of the reverse derivative of @f@
+-- for a given input @xy@.
 component :: (KnownNat n, KnownNat (n+1), Bits t)
   => (BitVec t n -> BitVec t 1) -> Int -> BitVec t (n + 1) -> BitVec t 1
 component f i xy = partial i f x .&. y -- df/dx_i * y
