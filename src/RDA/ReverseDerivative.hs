@@ -1,4 +1,4 @@
-module RDA.Derivative
+module RDA.ReverseDerivative
   ( eval
   , partial
   , component

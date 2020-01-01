@@ -1,3 +1,4 @@
+{-# LANGUAGE NoStarIsType #-} -- ^ Lets us write kinds like n * m, for KnownNats
 -- | Type-safe bitvectors
 -- Thanks: https://blog.jle.im/entry/fixed-length-vector-types-in-haskell.html
 module RDA.BitVec
@@ -7,6 +8,7 @@ module RDA.BitVec
   , convert
   , append
   , split
+  , concatBits
   ) where
 
 import Data.Proxy
@@ -41,10 +43,6 @@ toBits :: (KnownNat n, Bits t) => BitVec t n -> t
 toBits b@(BitVec x) = mask n .&. x
   where n = fromIntegral (natVal b)
 
--- | Arbitrarily resize a bitvector, discarding most significant bits if m < n
-resize :: (KnownNat n, Bits t) => BitVec t n -> BitVec t m
-resize (BitVec x) = BitVec x
-
 -- | Change the underlying representation of a 'BitVec'
 -- /O(n)/.
 convert :: (KnownNat n, Bits a, Bits b) => BitVec a n -> BitVec b n
@@ -52,6 +50,7 @@ convert a =
   foldl (\b i -> if testBit a i then setBit b i else b) zeroBits [0..finiteBitSize a]
 
 -- | Enlarge a vector
+-- This is safe, because we only add more capacity, which is a type-level operation.
 expand :: (Bits t, KnownNat n, KnownNat m, n <= m) => BitVec t n -> BitVec t m
 expand (BitVec x) = BitVec x
 
@@ -66,5 +65,21 @@ split :: forall n m t. (KnownNat n, KnownNat m, KnownNat (n + m), Bits t)
 split xy = (x, y)
   where
     x = resize xy
-    y = resize (xy `shiftR` m)
-    m = fromIntegral (natVal (Proxy :: Proxy m))
+    y = resize (xy `shiftR` n)
+    n = fromIntegral (natVal (Proxy :: Proxy n))
+
+-------------------------------
+-- Unsafe functions
+--
+-- | "Unsafely" resize a bitvector, discarding most significant bits if m < n
+resize :: (KnownNat n, KnownNat m, Bits t) => BitVec t n -> BitVec t m
+resize (BitVec x) = bitVec x
+
+-- | Sometimes, we statically know a length but it's not encoded in a type :p
+-- TODO: fix this; we should use vectors of statically-known-size instead of [].
+concatBits :: forall t c n m . (KnownNat n, KnownNat m, Bits t, Foldable c, Functor c)
+  => Proxy m
+  -> c (BitVec t n) -- ^ a list of bitvectors
+  -> BitVec t (n * m) -- ^ a concatenated bitvector, where m is length of the list above
+concatBits m = BitVec . foldl (\b a -> b `shiftL` n `xor` a) zeroBits . fmap unBitVec
+  where n = (fromIntegral . natVal) (Proxy :: Proxy n)
