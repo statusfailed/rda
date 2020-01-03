@@ -21,7 +21,8 @@ library
   -- other-modules:
   -- other-extensions:
   build-depends:       base >=4.12 && <4.13
-  exposed-modules:     RDA.BitVec
+  exposed-modules:     RDA
+                     , RDA.BitVec
                      , RDA.Bitwise
                      , RDA.ReverseDerivative
                      , RDA.Optimize
