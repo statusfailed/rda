@@ -23,6 +23,11 @@ oddDataset = (\x -> (bitVec x, y x)) <$> [0..15]
 bitTestDataset :: [(BitVec Int 4, BitVec Int 1)]
 bitTestDataset = (\x -> (bitVec x, if testBit x 3 then 1 else 0)) <$> [0..15]
 
+-- | 'noisyDataset' is just the 'bitTestDataset' with some extra "noisy" labels-
+-- x <= 2 will have label 1.
+noisyDataset :: [(BitVec Int 4, BitVec Int 1)]
+noisyDataset = (\x -> (bitVec x, if testBit x 3 || x <= 2 then 1 else 0)) <$> [0..15]
+
 misclassified :: (Bits t)
   => (BitVec t x -> BitVec t 1) -> [(BitVec t x, BitVec t 1)] -> Int
 misclassified model = length . filter (\(x, y) -> model x /= y)
@@ -48,8 +53,8 @@ main :: IO ()
 main = do
   --let model = lut4
       --dataset = thresholdDataset
-  let model = masking
-      dataset = bitTestDataset
+  let model = masking -- try "lut4"
+      dataset = noisyDataset -- also try 'bitTestDataset' or 'oddDataset'.
 
   putStrLn "learning trace..."
   let trace = rda dataset model zeroBits
