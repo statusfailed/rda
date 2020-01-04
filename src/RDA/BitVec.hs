@@ -1,4 +1,5 @@
 {-# LANGUAGE NoStarIsType #-} -- ^ Lets us write kinds like n * m, for KnownNats
+{-# LANGUAGE AllowAmbiguousTypes #-} -- ^ TODO: 'chunks' needs this- why?
 -- | Type-safe bitvectors
 -- Thanks: https://blog.jle.im/entry/fixed-length-vector-types-in-haskell.html
 module RDA.BitVec
@@ -7,8 +8,9 @@ module RDA.BitVec
   , toBits
   , convert
   , append
-  , split
   , concatBits
+  , split
+  , chunks
   ) where
 
 import Data.Proxy
@@ -67,6 +69,15 @@ split xy = (x, y)
     x = resize xy
     y = resize (xy `shiftR` n)
     n = fromIntegral (natVal (Proxy :: Proxy n))
+
+-- | Split a bitvector of known size into fixed size chunks.
+chunks :: forall n m t . (KnownNat n, KnownNat m, KnownNat (n * m), Bits t)
+  => BitVec t (n * m)
+  -> [BitVec t m] -- ^ n chunks of length m
+chunks = fmap bitVec . take n . iterate (\a -> a `shiftR` m) . unBitVec
+  where
+    n = (fromIntegral . natVal) (Proxy :: Proxy n)
+    m = (fromIntegral . natVal) (Proxy :: Proxy m)
 
 -------------------------------
 -- Unsafe functions
