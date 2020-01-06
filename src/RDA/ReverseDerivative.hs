@@ -6,6 +6,7 @@ module RDA.ReverseDerivative
   ) where
 
 import RDA.BitVec
+import RDA.Bitwise (cmpz)
 import Data.Bits
 import Data.Proxy
 import GHC.TypeNats
@@ -18,8 +19,8 @@ import GHC.TypeNats
 --
 -- >>> let t = bitVec 1 :: BitVec Int (2^1) in eval t . bitVec <$> [0,1]
 -- [1, 0]
-eval :: (KnownNat n, Bits t) => BitVec t (2 ^ n) -> BitVec t n -> BitVec t 1
-eval t = convert . bitVec . testBit t . toBits . convert
+eval :: (KnownNat n, Bits t, Integral t) => BitVec t (2 ^ n) -> BitVec t n -> BitVec t 1
+eval t = cmpz . testBit t . fromIntegral . unBitVec
 
 -- | The ith partial derivative at x for a function f
 -- TODO: @i@ can be larger than n - fix?

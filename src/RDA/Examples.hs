@@ -40,7 +40,7 @@ predictions model =
   fmap (\(x, y) -> (unBitVec x, unBitVec y, unBitVec (model x)))
 
 -- a 4-bit LUT model
-lut4 :: Bits t => BitVec t (2^4) -> BitVec t 4 -> BitVec t 1
+lut4 :: (Bits t, Integral t) => BitVec t (2^4) -> BitVec t 4 -> BitVec t 1
 lut4 = eval
 
 -- a simple masking model: returns 1 if any masked bits are on.
