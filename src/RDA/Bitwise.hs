@@ -14,3 +14,11 @@ cmpz :: (Bits t, Bits u) => t -> u
 cmpz x
   | x == zeroBits = zeroBits
   | otherwise     = bit 0
+
+-- @n `chunksOf` 2@ splits a @Bits@ value into @n@ @k@-bit "chunks". 
+-- For example, @3 `chunksOf` 2 $ 63 == [3, 3, 3]@ because @63 = 0b111111@.
+chunksOf :: Bits t => Int -> Int -> t -> [t]
+chunksOf n k = take n . fmap (mask k .&.) . iterate (\a -> a `shiftR` k)
+
+unsafeConcatBits :: (Bits t, Foldable f) => Int -> f t -> t
+unsafeConcatBits n = foldl (\b a -> (b `shiftL` n) `xor` a) zeroBits
