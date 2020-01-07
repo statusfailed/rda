@@ -28,6 +28,7 @@ library
                      , RDA.Optimize
                      , RDA.Examples
   hs-source-dirs:      src
+  ghc-options:         -O2 -threaded
   default-language:    Haskell2010
   extensions:          KindSignatures
                      , DataKinds
