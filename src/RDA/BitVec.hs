@@ -57,12 +57,12 @@ expand :: (Bits t, KnownNat n, KnownNat m, n <= m) => BitVec t n -> BitVec t m
 expand (BitVec x) = BitVec x
 
 -- | Append two 'BitVec's.
-append :: (Bits t, KnownNat n, KnownNat m, m <= n + m, n <= n + m, KnownNat (n + m))
+append :: (Bits t, KnownNat n, KnownNat m, m <= n + m, n <= n + m)
   => BitVec t n -> BitVec t m -> BitVec t (n + m)
 append x y = expand x `xor` (expand y `shiftL` n) -- shiftL: we write numbers backwards!
   where n = fromIntegral $ natVal x
 
-split :: forall n m t. (KnownNat n, KnownNat m, KnownNat (n + m), Bits t)
+split :: forall n m t. (KnownNat n, KnownNat m, Bits t)
   => BitVec t (n + m) -> (BitVec t n, BitVec t m)
 split xy = (x, y)
   where
@@ -71,7 +71,7 @@ split xy = (x, y)
     n = fromIntegral (natVal (Proxy :: Proxy n))
 
 -- | Split a bitvector of known size into fixed size chunks.
-chunks :: forall n m t . (KnownNat n, KnownNat m, KnownNat (n * m), Bits t)
+chunks :: forall n m t . (KnownNat n, KnownNat m, Bits t)
   => BitVec t (n * m)
   -> [BitVec t m] -- ^ n chunks of length m
 chunks = fmap bitVec . take n . iterate (\a -> a `shiftR` m) . unBitVec

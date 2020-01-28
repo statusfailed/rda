@@ -33,7 +33,7 @@ partial i f x = f x `xor` f (x `xor` e_i)
 -- reverse derivative @rf : n + 1 -> n@, a function interpreted as saying,
 -- "at a given input and change of output, how should the input change to
 -- achieve the given change of output".
--- NOTE: this is represented as a length @n@ tuple of functions, but we haven't
+-- NOTE: this is represented as a length @n@ tuple (list) of functions, but we haven't
 -- encoded this in the type!
 -- TODO: better length-encoded list types?
 rd1 :: forall n t . (KnownNat n, KnownNat (n+1), Bits t)
