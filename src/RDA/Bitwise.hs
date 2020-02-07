@@ -21,4 +21,5 @@ chunksOf :: Bits t => Int -> Int -> t -> [t]
 chunksOf n k = take n . fmap (mask k .&.) . iterate (\a -> a `shiftR` k)
 
 unsafeConcatBits :: (Bits t, Foldable f) => Int -> f t -> t
-unsafeConcatBits n = foldl (\b a -> (b `shiftL` n) `xor` a) zeroBits
+unsafeConcatBits n = snd . foldl f (0, zeroBits)
+  where f (i, b) a = (i + 1, b `xor` (a `shiftL` (n * i)))

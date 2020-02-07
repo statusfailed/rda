@@ -24,6 +24,7 @@ library
   exposed-modules:     RDA
                      , RDA.BitVec
                      , RDA.Bitwise
+                     , RDA.Image
                      , RDA.ReverseDerivative
                      , RDA.Optimize
                      , RDA.Examples
@@ -37,3 +38,5 @@ library
                      , GADTs
                      , FlexibleContexts
                      , ScopedTypeVariables
+                     , NoStarIsType
+                     , TypeApplications

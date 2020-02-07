@@ -11,13 +11,14 @@ module RDA.BitVec
   , concatBits
   , split
   , chunks
+  , resize -- unsafe!
   ) where
 
 import Data.Proxy
 import GHC.TypeNats
 
 import Data.Bits
-import RDA.Bitwise (mask)
+import RDA.Bitwise (mask, unsafeConcatBits)
 
 -- | A @'BitVec' n a@ is an @n@-bit vector stored as the type a.
 newtype BitVec t (n :: Nat) = BitVec { unBitVec :: t }
@@ -89,8 +90,8 @@ resize (BitVec x) = bitVec x
 -- | Sometimes, we statically know a length but it's not encoded in a type :p
 -- TODO: fix this; we should use vectors of statically-known-size instead of [].
 concatBits :: forall t c n m . (KnownNat n, KnownNat m, Bits t, Foldable c, Functor c)
-  => Proxy m
+  => Proxy m -- ^ m is a 'KnownNat' describing the length of the list
   -> c (BitVec t n) -- ^ a list of bitvectors
   -> BitVec t (n * m) -- ^ a concatenated bitvector, where m is length of the list above
-concatBits m = BitVec . foldl (\b a -> b `shiftL` n `xor` a) zeroBits . fmap unBitVec
+concatBits m = bitVec . unsafeConcatBits n . fmap unBitVec
   where n = (fromIntegral . natVal) (Proxy :: Proxy n)

@@ -23,7 +23,9 @@ rdaUpdate params x y model = concatBits (Proxy :: Proxy p) dw
     y' = model params x -- fix (params, x) and evaluate
     dy = y `xor` y' :: BitVec t 1
     fs = rd1 (\p -> model p x) :: [ BitVec t (p + 1) -> BitVec t 1 ]
-    dw = reverse $ fmap ($ append params dy) fs -- NOTE: reverse very important(!)
+    -- NOTE: used to have reverse here; bugfix was concatBits backwards wrt append
+    dw = fmap ($ append params dy) fs
+
 
 rda :: (KnownNat p, KnownNat x, KnownNat (p+1), Bits t, p <= p + 1, 1 <= p + 1)
   => [(BitVec t x, BitVec t 1)]  -- ^ A dataset of examples to learn
