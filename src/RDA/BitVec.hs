@@ -10,7 +10,9 @@ module RDA.BitVec
   , append
   , concatBits
   , split
+  , split3
   , chunks
+  , parity
   , resize -- unsafe!
   ) where
 
@@ -18,7 +20,7 @@ import Data.Proxy
 import GHC.TypeNats
 
 import Data.Bits
-import RDA.Bitwise (mask, unsafeConcatBits)
+import RDA.Bitwise (mask, unsafeConcatBits, cmpz)
 
 -- | A @'BitVec' n a@ is an @n@-bit vector stored as the type a.
 newtype BitVec t (n :: Nat) = BitVec { unBitVec :: t }
@@ -58,9 +60,9 @@ expand :: (Bits t, KnownNat n, KnownNat m, n <= m) => BitVec t n -> BitVec t m
 expand (BitVec x) = BitVec x
 
 -- | Append two 'BitVec's.
-append :: (Bits t, KnownNat n, KnownNat m, m <= n + m, n <= n + m)
+append :: (Bits t, KnownNat n, KnownNat m)
   => BitVec t n -> BitVec t m -> BitVec t (n + m)
-append x y = expand x `xor` (expand y `shiftL` n) -- shiftL: we write numbers backwards!
+append x y = resize x `xor` (resize y `shiftL` n) -- shiftL: we write numbers backwards!
   where n = fromIntegral $ natVal x
 
 split :: forall n m t. (KnownNat n, KnownNat m, Bits t)
@@ -71,6 +73,13 @@ split xy = (x, y)
     y = resize (xy `shiftR` n)
     n = fromIntegral (natVal (Proxy :: Proxy n))
 
+split3 :: forall a b c t. (KnownNat a, KnownNat b, KnownNat c, Bits t)
+  => BitVec t ((a + b) + c) -> (BitVec t a, BitVec t b, BitVec t c)
+split3 x = (a, b, c)
+  where
+    (ab, c) = split x
+    (a, b)  = split ab
+
 -- | Split a bitvector of known size into fixed size chunks.
 chunks :: forall n m t . (KnownNat n, KnownNat m, Bits t)
   => BitVec t (n * m)
@@ -79,6 +88,18 @@ chunks = fmap bitVec . take n . iterate (\a -> a `shiftR` m) . unBitVec
   where
     n = (fromIntegral . natVal) (Proxy :: Proxy n)
     m = (fromIntegral . natVal) (Proxy :: Proxy m)
+
+-- | The 'parity' of a 'BitVec' is @1@ if there are an odd number of bits, and
+-- even otherwise.
+-- In other words, this computes the XOR of all the bits in the vector.
+--
+-- >>> parity (3 :: BitVec Integer 2)
+-- BitVec {unBitVec = 0}
+-- >>> parity (2 :: BitVec Integer 2)
+-- BitVec {unBitVec = 1}
+parity :: forall n t . (Bits t, KnownNat n) => BitVec t n -> BitVec t 1
+parity = cmpz . odd . popCount . (.&. mask n)
+  where n = (fromIntegral . natVal) (Proxy :: Proxy n)
 
 -------------------------------
 -- Unsafe functions

@@ -12,6 +12,7 @@ import Data.Bits
 import GHC.TypeNats
 
 import RDA.BitVec
+import RDA.Eval
 import RDA.ReverseDerivative
 import RDA.Optimize
 

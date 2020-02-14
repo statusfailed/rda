@@ -25,3 +25,13 @@ See these links for details:
 
 - https://stackoverflow.com/questions/49818171/solving-this-ambiguous-type-issue-without-resorting-to-proxy
 - https://kseo.github.io/posts/2017-01-08-visible-type-application-ghc8.html
+
+# Bugs
+
+Because we don't mask to length after every Bits operation (like `bit` for
+example), the internal representation can contain too many bits, which are
+still there when we run `unBitVec`.
+
+Example:
+
+    unBitVec (bit 2 :: BitVec Integer 1) /= zeroBits

@@ -22,10 +22,12 @@ library
   -- other-extensions:
   build-depends:       base >=4.12 && <4.13, ghc-typelits-knownnat >= 0.7.1
   exposed-modules:     RDA
+                     , RDA.Nat
+                     , RDA.Eval
                      , RDA.BitVec
                      , RDA.Bitwise
-                     , RDA.Image
                      , RDA.ReverseDerivative
+                     , RDA.Image
                      , RDA.Optimize
                      , RDA.Examples
   hs-source-dirs:      src

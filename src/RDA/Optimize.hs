@@ -9,7 +9,8 @@ import Data.Proxy
 import GHC.TypeNats
 
 import RDA.BitVec
-import RDA.ReverseDerivative (rd1, eval)
+import RDA.Eval (eval)
+import RDA.ReverseDerivative (rd1)
 
 -- | A single update of the RDA algorithm
 rdaUpdate :: forall t p x . (KnownNat p, KnownNat (p+1), p <= p + 1, 1 <= p + 1, KnownNat x, Bits t)

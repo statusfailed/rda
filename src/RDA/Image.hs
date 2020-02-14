@@ -46,7 +46,7 @@ convolve2D :: forall kw kh w h m t .
   (KnownNat kw, KnownNat kh, KnownNat w, KnownNat h, KnownNat m, Bits t)
   => (BitVec t (kw * kh) -> BitVec t m)   -- ^ A (kw*kh → m) filter kernel
   -> BitVec t ((kw + w) * (kh + h))       -- ^ an image of at least kw*kh dimensions
-  -> BitVec t ((w + 1) * (h + 1))   -- ^ A w * h output image of m-bit pixels
+  -> BitVec t ((w + 1) * (h + 1) * m)         -- ^ A w * h output image of m-bit pixels
 convolve2D f = bitVec . unsafeConvolve2D (kw, kh) (w, h) m f' . unBitVec
   where
     f' = unBitVec . f . bitVec :: t -> t
@@ -69,6 +69,7 @@ unsafeConvolve2D :: (Bits t)
   -> t          -- ^ Output image, row-major form, @m@-bit pixels.
 unsafeConvolve2D k@(kw, kh) d@(w, h) m f x = unsafeConcatBits m ys
   where
+    -- NOTE: TODO: shouldn't this be w + 1, not kw-1?
     ys = [ f (unsafeSubImage k d i j x) | i <- [0..kw-1], j <- [0..kh-1] ]
 
 -- | Unsafely slice a 2-dimensional image stored in row-major form in an 'Integer'
@@ -107,3 +108,15 @@ transpose v = foldl xor zeroBits b
     n = num (Proxy :: Proxy n) :: Int
     m = num (Proxy :: Proxy m) :: Int
 
+-- | Tumble a @kw × kh@ window across an image of size @(kw × w) × (kh × h)@,
+-- to produce an image of size @(w × h)@.
+unsafeTumble2D :: (Bits t)
+  => (Int, Int) -- ^ @(kw, kh)@ kernel size (w, h)
+  -> (Int, Int) -- ^ @(w, h)@ image size (as multiple of kernel size) (w, h)
+  -> Int        -- ^ @m@ kernel output size (# output bits)
+  -> (t -> t)   -- ^ @f@, a function of type @kw*kh → m@
+  -> t          -- ^ Input image, row-major form.
+  -> t          -- ^ Output image, row-major form, @m@-bit pixels.
+unsafeTumble2D k@(kw, kh) d@(w, h) m f x = unsafeConcatBits m ys
+  where
+    ys = [ f (unsafeSubImage k d (kw*i) (kh*j) x) | i <- [0..w-1], j <- [0..h-1] ]

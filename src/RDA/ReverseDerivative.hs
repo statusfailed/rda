@@ -1,26 +1,28 @@
 module RDA.ReverseDerivative
-  ( eval
-  , partial
+  ( partial
   , component
+  , rd
   , rd1
   ) where
 
+import RDA.Nat
 import RDA.BitVec
 import RDA.Bitwise (cmpz)
 import Data.Bits
 import Data.Proxy
 import GHC.TypeNats
 
--- | Evaluate a truth table of @2^n@ bits as a function from @n@ bits to @1@ bit
--- NOTE: this is technically unsafe, because we convert the second argument to
--- an 'Int'.
---
--- Example: the truth table for NOT (truth table represented in binary as 10):
---
--- >>> let t = bitVec 1 :: BitVec Int (2^1) in eval t . bitVec <$> [0,1]
--- [1, 0]
-eval :: (KnownNat n, Bits t, Integral t) => BitVec t (2 ^ n) -> BitVec t n -> BitVec t 1
-eval t = cmpz . testBit t . fromIntegral . unBitVec
+-- | Reverse Derivative, brute force implementation.
+-- @rd f@ computes the reverse derivative using @n + 1@ applications of the
+-- function @f@.
+rd :: forall n m . (KnownNat n, KnownNat m)
+  => (BitVec Integer n -> BitVec Integer m)
+  -> BitVec Integer (n + m)
+  -> BitVec Integer n
+rd f v = concatBits (Proxy :: Proxy n) (parity <$> partials)
+  where
+    (x, dy)  = split @n @m v
+    partials = [ (f x `xor` f (x `xor` e_i)) .&. dy | e_i <- fmap bit [0..nat @n - 1] ]
 
 -- | The ith partial derivative at x for a function f
 -- TODO: @i@ can be larger than n - fix?
