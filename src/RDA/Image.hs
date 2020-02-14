@@ -1,6 +1,7 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 module RDA.Image where
 
+import RDA.Nat
 import RDA.Bitwise
 import RDA.BitVec
 import GHC.TypeNats
@@ -21,22 +22,13 @@ num = fromIntegral . natVal
 -- Example call, with a 2×2 filter kernel over a (2+1)×(2+1) image:
 --  @subImage @2 @2 @1 @1 0 0 (273 :: BitVec Integer (3 * 3)) :: BitVec Integer (2 * 2)@
 subImage :: forall kw kh w h t
-  . (Bits t, KnownNat w, KnownNat h, KnownNat kw, KnownNat kh)
+  . (Bits t, KnownNat kw, KnownNat kh, KnownNat w, KnownNat h)
   => Int -- ^ horizontal offset
   -> Int -- ^ vertical   offset
   -> BitVec t ((kw + w) * (kh + h)) -- ^ Input image
   -> BitVec t (kw * kh) -- ^ output image
 subImage i j (BitVec x)
-  = bitVec
-  . unsafeConcatBits kw
-  . fmap (mask kw .&.)
-  . (kh `chunksOf` w)
-  $ shiftR x (j * w + i)
-  where
-    kw = num (Proxy :: Proxy kw)
-    kh = num (Proxy :: Proxy kh)
-    w = num (Proxy :: Proxy w)
-    h = num (Proxy :: Proxy h)
+  = bitVec $ unsafeSubImage (nat @kw, nat @kh) (nat @w, nat @h) i j x
 
 -- | 2D-Convolve a square filter over a square image in row-major order.
 --
