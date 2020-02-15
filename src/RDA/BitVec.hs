@@ -20,6 +20,7 @@ import Data.Proxy
 import GHC.TypeNats
 
 import Data.Bits
+import RDA.Nat (nat)
 import RDA.Bitwise (mask, unsafeConcatBits, cmpz)
 
 -- | A @'BitVec' n a@ is an @n@-bit vector stored as the type a.
@@ -108,11 +109,10 @@ parity = cmpz . odd . popCount . (.&. mask n)
 resize :: (KnownNat n, KnownNat m, Bits t) => BitVec t n -> BitVec t m
 resize (BitVec x) = bitVec x
 
--- | Sometimes, we statically know a length but it's not encoded in a type :p
+-- | Sometimes, we statically know a length but it's not encoded in a type.
 -- TODO: fix this; we should use vectors of statically-known-size instead of [].
-concatBits :: forall t c n m . (KnownNat n, KnownNat m, Bits t, Foldable c, Functor c)
-  => Proxy m -- ^ m is a 'KnownNat' describing the length of the list
-  -> c (BitVec t n) -- ^ a list of bitvectors
+concatBits :: forall m n c t . (KnownNat n, KnownNat m, Bits t, Foldable c, Functor c)
+  => c (BitVec t n) -- ^ a list of bitvectors
   -> BitVec t (n * m) -- ^ a concatenated bitvector, where m is length of the list above
-concatBits m = bitVec . unsafeConcatBits n . fmap unBitVec
-  where n = (fromIntegral . natVal) (Proxy :: Proxy n)
+concatBits = bitVec . unsafeConcatBits n . fmap unBitVec
+  where n = nat @n

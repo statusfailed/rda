@@ -19,7 +19,7 @@ rdaUpdate :: forall t p x . (KnownNat p, KnownNat (p+1), p <= p + 1, 1 <= p + 1,
   -> BitVec t 1
   -> (BitVec t p -> BitVec t x -> BitVec t 1)
   -> BitVec t p
-rdaUpdate params x y model = concatBits (Proxy :: Proxy p) dw
+rdaUpdate params x y model = concatBits @p dw
   where
     y' = model params x -- fix (params, x) and evaluate
     dy = y `xor` y' :: BitVec t 1

@@ -19,7 +19,7 @@ rd :: forall n m . (KnownNat n, KnownNat m)
   => (BitVec Integer n -> BitVec Integer m)
   -> BitVec Integer (n + m)
   -> BitVec Integer n
-rd f v = concatBits (Proxy :: Proxy n) (parity <$> partials)
+rd f v = concatBits @n (parity <$> partials)
   where
     (x, dy)  = split @n @m v
     partials = [ (f x `xor` f (x `xor` e_i)) .&. dy | e_i <- fmap bit [0..nat @n - 1] ]
