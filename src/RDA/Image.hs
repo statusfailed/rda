@@ -38,15 +38,11 @@ convolve2D :: forall kw kh w h m t .
   (KnownNat kw, KnownNat kh, KnownNat w, KnownNat h, KnownNat m, Bits t)
   => (BitVec t (kw * kh) -> BitVec t m)   -- ^ A (kw*kh → m) filter kernel
   -> BitVec t ((kw + w) * (kh + h))       -- ^ an image of at least kw*kh dimensions
-  -> BitVec t ((w + 1) * (h + 1) * m)         -- ^ A w * h output image of m-bit pixels
-convolve2D f = bitVec . unsafeConvolve2D (kw, kh) (w, h) m f' . unBitVec
+  -> BitVec t ((w + 1) * (h + 1) * m)     -- ^ A w * h output image of m-bit pixels
+convolve2D f =
+  bitVec . unsafeConvolve2D (nat @kw, nat @kh) (nat @w, nat @h) (nat @m) f' . unBitVec
   where
     f' = unBitVec . f . bitVec :: t -> t
-    kw = (fromIntegral . natVal) (Proxy :: Proxy kw)
-    kh = (fromIntegral . natVal) (Proxy :: Proxy kh)
-    w  = (fromIntegral . natVal) (Proxy :: Proxy w)
-    h  = (fromIntegral . natVal) (Proxy :: Proxy h)
-    m  = (fromIntegral . natVal) (Proxy :: Proxy m)
 
 -- | @unsafeConvolve2D (kw, kh) (w, h) m f x@ applies the filter kernel @f@ to
 -- each @kw × kh@ patch of the @w × h@ image stored in the bitvector @x@.
