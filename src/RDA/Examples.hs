@@ -11,10 +11,7 @@ module RDA.Examples
 import Data.Bits
 import GHC.TypeNats
 
-import RDA.BitVec
-import RDA.Eval
-import RDA.ReverseDerivative
-import RDA.Optimize
+import RDA
 
 -- | A dataset of 4-bit integers with label = 1 if odd, else 0..
 oddDataset :: [(BitVec Int 4, BitVec Int 1)]
@@ -26,7 +23,7 @@ bitTestDataset = (\x -> (bitVec x, if testBit x 3 then 1 else 0)) <$> [0..15]
 
 -- | 'noisyDataset' is just the 'bitTestDataset' with some extra "noisy" labels-
 -- x <= 2 will have label 1.
-noisyDataset :: [(BitVec Int 4, BitVec Int 1)]
+noisyDataset :: [(BitVec Integer 4, BitVec Integer 1)]
 noisyDataset = (\x -> (bitVec x, if testBit x 3 || x <= 2 then 1 else 0)) <$> [0..15]
 
 misclassified :: (Bits t)
@@ -45,8 +42,12 @@ lut4 :: (Bits t, Integral t) => BitVec t (2^4) -> BitVec t 4 -> BitVec t 1
 lut4 = eval
 
 -- a simple masking model: returns 1 if any masked bits are on.
-masking :: (Num t, Bits t) => BitVec t 4 -> BitVec t 4 -> BitVec t 1
-masking params x = if params .&. x /= zeroBits then 1 else 0
+masking' :: (Num t, Bits t) => BitVec t 4 -> BitVec t 4 -> BitVec t 1
+masking' params x = if params .&. x /= zeroBits then 1 else 0
+
+masking :: (4 + 4) :-> 1
+masking = fwd :-> rd fwd
+  where fwd = uncurry masking' . split
 
 -- Test we can learn the "odd" function as a 4-bit LUT.  (indeed, we can: this
 -- should terminate in 16 steps with a perfect "classifier")
@@ -55,13 +56,14 @@ main = do
   --let model = lut4
       --dataset = thresholdDataset
   let model = masking -- try "lut4"
+      (fwd :-> _) = model
       dataset = noisyDataset -- also try 'bitTestDataset' or 'oddDataset'.
 
   putStrLn "learning trace..."
-  let trace = rda dataset model zeroBits
+  let trace = rda model zeroBits dataset
       final = last trace
   print $ unBitVec <$> trace
   putStrLn $ "final function params: " ++ show final
-  putStrLn $ "misclassified items: " ++ show (misclassified (model final) dataset)
+  putStrLn $ "misclassified items: " ++ show (misclassified (fwd . append final) dataset)
   putStrLn "all misclassified: "
-  mapM_ print . filter (\(x, y, y') -> y /= y') $ predictions (model final) dataset
+  mapM_ print . filter (\(x, y, y') -> y /= y') $ predictions (fwd . append final) dataset

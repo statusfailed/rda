@@ -7,6 +7,7 @@ module RDA
   , module RDA.Eval
   , module RDA.ReverseDerivative
   , module RDA.Optimize
+  , module RDA.Compositional.Model
   ) where
 
 import GHC.TypeNats
@@ -17,3 +18,4 @@ import RDA.BitVec
 import RDA.LinearAlgebra
 import RDA.Optimize
 import RDA.ReverseDerivative
+import RDA.Compositional.Model

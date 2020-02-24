@@ -30,6 +30,7 @@ library
                      , RDA.ReverseDerivative
                      , RDA.Image
                      , RDA.Optimize
+                     , RDA.Compositional.Model
                      , RDA.Examples
   hs-source-dirs:      src
   ghc-options:         -O2 -threaded "-fplugin GHC.TypeLits.KnownNat.Solver"
