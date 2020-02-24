@@ -26,6 +26,7 @@ library
                      , RDA.Eval
                      , RDA.BitVec
                      , RDA.Bitwise
+                     , RDA.LinearAlgebra
                      , RDA.ReverseDerivative
                      , RDA.Image
                      , RDA.Optimize

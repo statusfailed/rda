@@ -6,6 +6,12 @@ This library provides two main things:
 * A brute-force implementation of the reverse derivative for
   boolean functions of type `n -> 1`
 
+# `RDA.LinearAlgebra`
+
+Contains some basic subroutines for linearalgebra, like matrix multiply and dot
+product. These are not optimized at all, and probably could do with some
+attention.
+
 # Image module
 
 The image module contains functions like `convolve2D` that express image sizes

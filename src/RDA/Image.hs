@@ -69,32 +69,15 @@ unsafeSubImage (kw, kh) (w, h) i j x
   . (kh `chunksOf` (kw+w))
   $ shiftR x (j * (kw + w) + i)
 
--- | NOTE: this type doesn't encode the important part of this operation; namely
--- that it puts a bitvector from 'row-major' form into 'column major' form.
---
--- 0b 001 010 100 111   n = 3, m = 4
--- 0b 0011 0101 1001    transposed
---
--- >>> transpose @2 @3 37 == 49
---
--- TODO: this works but it's probably garbage; basically two nested loops over
--- the bit array- very slow!
-transpose :: forall n m t . (Bits t, KnownNat n, KnownNat m)
-  => BitVec t (m * n) -- ^ a bitvector representing @m@ @n@-bit parts
-  -> BitVec t (n * m) -- ^ a bitvector of @n@ @m@-bit parts
-transpose v = foldl xor zeroBits b
+tumble2D :: forall kw kh w h m t .
+  (KnownNat kw, KnownNat kh, KnownNat w, KnownNat h, KnownNat m, Bits t)
+  => (BitVec t (kw * kh) -> BitVec t m)   -- ^ A (kw*kh → m) filter kernel
+  -> BitVec t ((kw * w) * (kh * h))       -- ^ an image of at least kw*kh dimensions
+  -> BitVec t ((w + 1) * (h + 1) * m)     -- ^ A w * h output image of m-bit pixels
+tumble2D f =
+  bitVec . unsafeTumble2D (nat @kw, nat @kh) (nat @w, nat @h) (nat @m) f' . unBitVec
   where
-    a = chunks @m @n v :: [BitVec t n]
-
-    b = zipWith f [0..] a
-
-    f :: Int -> BitVec t n -> BitVec t (n * m)
-    f i x = foldl xor zeroBits $ fmap (g i x) [0..n-1]
-
-    g i x j = if testBit x j then bit (m * j + i) else zeroBits
-
-    n = num (Proxy :: Proxy n) :: Int
-    m = num (Proxy :: Proxy m) :: Int
+    f' = unBitVec . f . bitVec :: t -> t
 
 -- | Tumble a @kw × kh@ window across an image of size @(kw × w) × (kh × h)@,
 -- to produce an image of size @(w × h)@.

@@ -23,9 +23,14 @@ import Data.Bits
 import RDA.Nat (nat)
 import RDA.Bitwise (mask, unsafeConcatBits, cmpz)
 
+import Numeric (showHex)
+
 -- | A @'BitVec' n a@ is an @n@-bit vector stored as the type a.
 newtype BitVec t (n :: Nat) = BitVec { unBitVec :: t }
-  deriving(Eq, Ord, Read, Show, Enum, Num, Bits)
+  deriving(Eq, Ord, Read, Enum, Num, Bits)
+
+instance (Integral t, Show t) => Show (BitVec t n) where
+  showsPrec _ (BitVec t) = \s -> "0x" ++ showHex t s
 
 instance (KnownNat n, Bits t) => FiniteBits (BitVec t n) where
   finiteBitSize b = fromIntegral (natVal b)
@@ -38,7 +43,7 @@ instance (KnownNat n, Bits t) => FiniteBits (BitVec t n) where
 --
 -- :t bitVec 3 :: BitVec Integer 5
 -- BitVec Integer 5
-bitVec :: (KnownNat n, Bits t) => t -> BitVec t n
+bitVec :: forall n t . (KnownNat n, Bits t) => t -> BitVec t n
 bitVec x = r
   where
     r = BitVec (mask n .&. x)
