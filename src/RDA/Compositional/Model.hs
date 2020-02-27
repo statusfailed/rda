@@ -20,7 +20,7 @@ data n :-> m where
     -> (BitVec Integer (n + m) -> BitVec Integer n)
     -> (n :-> m)
 
-identity :: (KnownNat n, KnownNat m) => n :-> n
+identity :: forall n . KnownNat n => n :-> n
 identity = id :-> (snd . split)
 
 -- the chain rule (composition!)
@@ -36,7 +36,7 @@ chain (f :-> rf) (g :-> rg) = (g . f) :-> rfg
 --   g : p_g + b → c
 -- by splitting the parameters:
 --   (id × f) g : p_g + (p_f + a) → c
-chainParam :: forall a b c pf pg
+chainParam :: forall pf pg a b c
   .  (KnownNat a, KnownNat b, KnownNat c, KnownNat pf, KnownNat pg)
   => ((pf + a) :-> b) -> ((pg + b) :-> c) -> (((pg + pf) + a) :-> c) 
 chainParam (f :-> rf) (g :-> rg) = fwd :-> rev

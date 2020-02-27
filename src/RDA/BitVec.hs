@@ -66,7 +66,7 @@ expand :: (Bits t, KnownNat n, KnownNat m, n <= m) => BitVec t n -> BitVec t m
 expand (BitVec x) = BitVec x
 
 -- | Append two 'BitVec's.
-append :: (Bits t, KnownNat n, KnownNat m)
+append :: forall n m t . (Bits t, KnownNat n, KnownNat m)
   => BitVec t n -> BitVec t m -> BitVec t (n + m)
 append x y = resize x `xor` (resize y `shiftL` n) -- shiftL: we write numbers backwards!
   where n = fromIntegral $ natVal x
