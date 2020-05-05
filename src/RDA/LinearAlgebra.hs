@@ -22,6 +22,9 @@ matrixMultiply :: forall a b t . (KnownNat a, KnownNat b, Bits t)
   -> BitVec t b       -- ^ output
 matrixMultiply p x = concatBits @b . fmap (dotProduct x) $ (chunks @b @a p)
 
+scalarMultiply :: Bits t => BitVec t 1 -> BitVec t n -> BitVec t n
+scalarMultiply c x = if c == zeroBits then zeroBits else x
+
 -- | Take the dot product of two vectors over Z_2
 dotProduct :: (KnownNat n, Bits t) => BitVec t n -> BitVec t n -> BitVec t 1
 dotProduct x y = parity (x .&. y)

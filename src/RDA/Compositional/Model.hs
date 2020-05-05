@@ -24,11 +24,11 @@ identity :: forall n . KnownNat n => n :-> n
 identity = id :-> (snd . split)
 
 -- the chain rule (composition!)
-chain :: (KnownNat a, KnownNat b, KnownNat c)
+chain :: forall a b c . (KnownNat a, KnownNat b, KnownNat c)
   => (a :-> b) -> (b :-> c) -> (a :-> c) 
 chain (f :-> rf) (g :-> rg) = (g . f) :-> rfg
   where
-    rfg v = let (n, m) = split v in rf (append n $ rg (append (f n) m))
+    rfg v = let (a, c) = split @a @c v in rf (append a $ rg (append (f a) c))
 
 -- | Chain for /parametrised/ functions
 -- we are really composing (see notes dated 2020-02-12):
@@ -37,7 +37,7 @@ chain (f :-> rf) (g :-> rg) = (g . f) :-> rfg
 -- by splitting the parameters:
 --   (id × f) g : p_g + (p_f + a) → c
 chainParam :: forall pf pg a b c
-  .  (KnownNat a, KnownNat b, KnownNat c, KnownNat pf, KnownNat pg)
+  .  (KnownNat pf, KnownNat pg, KnownNat a, KnownNat b, KnownNat c)
   => ((pf + a) :-> b) -> ((pg + b) :-> c) -> (((pg + pf) + a) :-> c) 
 chainParam (f :-> rf) (g :-> rg) = fwd :-> rev
   where

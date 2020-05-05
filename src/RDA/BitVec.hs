@@ -1,3 +1,4 @@
+{-# LANGUAGE MagicHash #-} -- ^ needed for integerLog2#
 {-# LANGUAGE NoStarIsType #-} -- ^ Lets us write kinds like n * m, for KnownNats
 {-# LANGUAGE AllowAmbiguousTypes #-} -- ^ TODO: 'chunks' needs this- why?
 -- | Type-safe bitvectors
@@ -14,10 +15,14 @@ module RDA.BitVec
   , chunks
   , parity
   , resize -- unsafe!
+  , log2
   ) where
 
 import Data.Proxy
 import GHC.TypeNats
+
+import GHC.Exts (Int(I#))
+import GHC.Integer.Logarithms (integerLog2#)
 
 import Data.Bits
 import RDA.Nat (nat)
@@ -116,8 +121,15 @@ resize (BitVec x) = bitVec x
 
 -- | Sometimes, we statically know a length but it's not encoded in a type.
 -- TODO: fix this; we should use vectors of statically-known-size instead of [].
-concatBits :: forall m n c t . (KnownNat n, KnownNat m, Bits t, Foldable c, Functor c)
+concatBits :: forall m n c t . (KnownNat m, KnownNat n, Bits t, Foldable c, Functor c)
   => c (BitVec t n) -- ^ a list of bitvectors
   -> BitVec t (n * m) -- ^ a concatenated bitvector, where m is length of the list above
 concatBits = bitVec . unsafeConcatBits n . fmap unBitVec
   where n = nat @n
+
+-------------------------------
+-- Integer-specific bitvector functions
+
+log2 :: forall a . (KnownNat a, KnownNat (Log2 a))
+  => BitVec Integer a -> BitVec Integer (Log2 a)
+log2 x = bitVec . fromIntegral $ I# (integerLog2# (unBitVec x))

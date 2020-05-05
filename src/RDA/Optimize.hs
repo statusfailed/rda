@@ -8,6 +8,7 @@ import Data.Bits
 import Data.Proxy
 import GHC.TypeNats
 
+import RDA.Bitwise
 import RDA.BitVec
 import RDA.Eval (eval)
 import RDA.ReverseDerivative (rd1)
@@ -19,10 +20,11 @@ rdaUpdate :: forall p n m . (KnownNat p, KnownNat n, KnownNat m)
   -> (BitVec Integer n, BitVec Integer m) -- ^ a training example (x, y)
   -> BitVec Integer p -- ^ updated model parameters
 rdaUpdate (fwd :-> rev) p (x, y) = p `xor` p'
+  --let i = msb p' in if i /= (-1) then (complementBit p i) else p
   where
     px = append p x
     dy = y `xor` fwd px
-    (p', _) = split $ rev (append px dy)
+    (p', _) = split @p @n $ rev (append px dy)
 
 rda :: forall p n m . (KnownNat p, KnownNat n, KnownNat m)
   => ((p + n) :-> m) -- ^ a model
