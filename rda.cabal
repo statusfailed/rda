@@ -34,6 +34,7 @@ library
                      , RDA.Image
                      , RDA.Optimize
                      , RDA.Compositional.Model
+                     , RDA.Compositional.Structure
                      , RDA.Examples
   hs-source-dirs:      src
   ghc-options:         -O2 -threaded "-fplugin GHC.TypeLits.KnownNat.Solver"
@@ -49,3 +50,4 @@ library
                      , ScopedTypeVariables
                      , NoStarIsType
                      , TypeApplications
+                     , AllowAmbiguousTypes
