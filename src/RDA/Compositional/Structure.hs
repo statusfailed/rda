@@ -115,6 +115,14 @@ discard = discardFwd :-> tensorFwd (discardFwd @n) (zeroFwd @n)
 zero :: forall n . KnownNat n => 0 :-> n
 zero = zeroFwd :-> discardFwd @n
 
+-------------------------------
+-- Polynomial structure
+
+multiply :: forall a . KnownNat a => (a + a) :-> a
+multiply = fwd :-> rev
+  where fwd = uncurry (.&.) . split @a . (.&. mask (nat @(a + a)))
+                rev v = let (x1, x2, dy) = split3 @a v in append (x2 .&. dy) (x1 .&. dy)
+
 one :: forall n . KnownNat n => 0 :-> n
 one = const oneFwd :-> discardFwd @n
 
@@ -215,3 +223,22 @@ idFwd = id
 swapFwd :: forall a b t . (KnownNat a, KnownNat b, Bits t)
   => BitVec t (a + b) -> BitVec t (b + a)
 swapFwd = uncurry (flip append) . split @a @b
+
+-------------------------------
+-- Misc extra primitives
+
+-- | Turn a binary number @n@ into the @n@th basis vector, e.g.,
+--
+-- >>> run basis i = bit i
+basis :: forall a . RDA.KnownNat a => a :-> (2^a)
+basis = basisFwd :-> basisRev
+
+basisFwd :: forall a . RDA.KnownNat a => BitVec Integer a -> BitVec Integer (2^a)
+basisFwd = bitVec . bit . fromIntegral . unBitVec
+
+basisRev :: forall a . RDA.KnownNat a => BitVec Integer (a + 2^a) -> BitVec Integer a
+basisRev v = concatBits @a @1 [cmpz . f . testBit dy . toInt $ complementBit x e_i | e_i <- [0..nat @a]]
+  where
+        (x, dy) = split @a v
+    f = if testBit dy (toInt x) then Prelude.not else id
+    toInt = fromIntegral . unBitVec

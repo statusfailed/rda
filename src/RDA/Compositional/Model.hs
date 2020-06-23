@@ -20,6 +20,12 @@ data n :-> m where
     -> (BitVec Integer (n + m) -> BitVec Integer n)
     -> (n :-> m)
 
+run :: (a :-> b) -> (BitVec Integer a -> BitVec Integer b)
+run (f :-> _) = f
+
+runRev :: (a :-> b) -> (BitVec Integer a -> BitVec Integer b)
+runRev (_ :-> rf) = rf
+
 identity :: forall n . KnownNat n => n :-> n
 identity = id :-> (snd . split)
 
