@@ -120,8 +120,9 @@ zero = zeroFwd :-> discardFwd @n
 
 multiply :: forall a . KnownNat a => (a + a) :-> a
 multiply = fwd :-> rev
-  where fwd = uncurry (.&.) . split @a . (.&. mask (nat @(a + a)))
-                rev v = let (x1, x2, dy) = split3 @a v in append (x2 .&. dy) (x1 .&. dy)
+  where
+    fwd = uncurry (.&.) . split @a . (.&. mask (nat @(a + a)))
+    rev v = let (x1, x2, dy) = split3 @a v in append (x2 .&. dy) (x1 .&. dy)
 
 one :: forall n . KnownNat n => 0 :-> n
 one = const oneFwd :-> discardFwd @n
@@ -239,6 +240,6 @@ basisFwd = bitVec . bit . fromIntegral . unBitVec
 basisRev :: forall a . RDA.KnownNat a => BitVec Integer (a + 2^a) -> BitVec Integer a
 basisRev v = concatBits @a @1 [cmpz . f . testBit dy . toInt $ complementBit x e_i | e_i <- [0..nat @a]]
   where
-        (x, dy) = split @a v
+    (x, dy) = split @a v
     f = if testBit dy (toInt x) then Prelude.not else id
     toInt = fromIntegral . unBitVec
