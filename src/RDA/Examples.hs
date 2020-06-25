@@ -46,7 +46,7 @@ masking' :: (Num t, Bits t) => BitVec t 4 -> BitVec t 4 -> BitVec t 1
 masking' params x = if params .&. x /= zeroBits then 1 else 0
 
 masking :: (4 + 4) :-> 1
-masking = fwd :-> rd fwd
+masking = fwd :-> rdiffB fwd
   where fwd = uncurry masking' . split
 
 -- Test we can learn the "odd" function as a 4-bit LUT.  (indeed, we can: this

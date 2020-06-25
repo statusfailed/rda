@@ -21,16 +21,16 @@ data n :-> m where
     -> (n :-> m)
 
 -- | Run a model forward
-run :: (a :-> b) -> (BitVec Integer a -> BitVec Integer b)
-run (f :-> _) = f
+apply :: (a :-> b) -> (BitVec Integer a -> BitVec Integer b)
+apply (f :-> _) = f
 
 -- | Run the reverse derivative of a model
 --
 -- NOTE: for a compositionally-constructed model, this is not the reverse
 -- derivative of a boolean circuit unless the forward circuit is *safe* (see
 -- paper)
-runRev :: (a :-> b) -> BitVec Integer (a + b) -> BitVec Integer a
-runRev (_ :-> rf) = rf
+rdiff :: (a :-> b) -> BitVec Integer (a + b) -> BitVec Integer a
+rdiff (_ :-> rf) = rf
 
 identity :: forall n . KnownNat n => n :-> n
 identity = id :-> (snd . split)

@@ -11,7 +11,6 @@ import GHC.TypeNats
 import RDA.Bitwise
 import RDA.BitVec
 import RDA.Eval (eval)
-import RDA.ReverseDerivative (rd1)
 import RDA.Compositional.Model ((:->)(..))
 
 rdaUpdate :: forall p n m . (KnownNat p, KnownNat n, KnownNat m)
