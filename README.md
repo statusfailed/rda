@@ -8,11 +8,11 @@ A library for training circuit models as in the paper
 This library provides three main things:
 
 * A type-safe, `Integer`-backed implementation of Bitvectors
-* A brute-force implementation of the reverse derivative for
-  boolean functions of type `n -> 1`
 * Some tools for compositionally building circuit models as in
   our [reverse derivative ascent] paper (including computing their reverse
   derivative)
+* A brute-force implementation of the reverse derivative, which computes the
+  same results as the compositional one, but slower.
 
 # User Guide
 
